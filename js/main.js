@@ -184,69 +184,179 @@ function getTeamName(id) {
     return t ? t.name : '';
 }
 
+var AUTH_KEY = "jordropAuth";
+var AUTH_USER = "Jordrop";
+var AUTH_PASS = "1234";
+
+function isLoggedIn() {
+    return localStorage.getItem(AUTH_KEY) === "true";
+}
+
+function setNavEnabled(enabled) {
+    var ids = ["btnTournaments", "btnEarnings", "btnTeams", "btnPlayers", "btnAddTeam", "btnAddPlayer", "btnLogout", "searchInput"];
+    ids.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.disabled = !enabled;
+        if (enabled) {
+            el.classList.remove('is-disabled');
+        } else {
+            el.classList.add('is-disabled');
+        }
+    });
+    document.body.classList.toggle('logged-out', !enabled);
+}
+
+function requireAuth() {
+    if (!isLoggedIn()) {
+        showLogin();
+        return false;
+    }
+    return true;
+}
+
+function showLogin(message) {
+    setNavEnabled(false);
+    content.innerHTML = `
+        <div class="login-wrap">
+            <div class="login-card">
+                <div class="login-badge">J</div>
+                <h2>Jordrop Portal</h2>
+                <p class="muted">Sign in to access teams, players, and stats.</p>
+                <form id="loginForm">
+                    <label>Username</label>
+                    <input id="loginUser" type="text" placeholder="Jordrop" autocomplete="username" required>
+                    <label>Password</label>
+                    <input id="loginPass" type="password" placeholder="****" autocomplete="current-password" required>
+                    <button type="submit" class="primary-btn">Log in</button>
+                    <div class="login-hint">${message || 'Use Jordrop / 1234'}</div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    var form = document.getElementById('loginForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var user = document.getElementById('loginUser').value.trim();
+        var pass = document.getElementById('loginPass').value.trim();
+        if (user === AUTH_USER && pass === AUTH_PASS) {
+            localStorage.setItem(AUTH_KEY, "true");
+            setNavEnabled(true);
+            showHome();
+        } else {
+            showLogin('Invalid login. Use Jordrop / 1234.');
+        }
+    });
+}
+
+function formatCurrency(value) {
+    var safe = typeof value === 'number' && !isNaN(value) ? value : 0;
+    return '$' + Math.round(safe).toLocaleString('en-US');
+}
+
+function buildTournamentStats() {
+    var map = {};
+    data.players.forEach(function (p) {
+        (p.tournaments || []).forEach(function (tournament) {
+            var name = (tournament || '').trim();
+            if (!name) return;
+            if (!map[name]) {
+                map[name] = { name: name, players: 0, earnings: 0 };
+            }
+            map[name].players += 1;
+            map[name].earnings += (p.earnings || 0);
+        });
+    });
+    var list = Object.keys(map).map(function (key) { return map[key]; });
+    list.sort(function (a, b) {
+        if (b.players !== a.players) return b.players - a.players;
+        if (b.earnings !== a.earnings) return b.earnings - a.earnings;
+        return a.name.localeCompare(b.name);
+    });
+    return list;
+}
+
 function showHome(skipPush) {
+    if (!requireAuth()) return;
      content.innerHTML = "";
 
     // Hero Section
     var hero = document.createElement('div'); hero.className = 'hero';
     hero.innerHTML = `
+        <video class="panel-video" autoplay muted loop playsinline preload="auto" poster="../assets/trophy1.png">
+            <source src="../assets/vitality_rlcs2023.mp4" type="video/mp4">
+        </video>
         <div class="hero-inner">
-            <h1>Esports domain</h1>
-            <p class="muted">Live esports reference for players & teams</p>
+            <h1>Jordrop Esports</h1>
+            <p class="muted">Simple esports reference for players and teams</p>
         </div>
     `;
     content.appendChild(hero);
+
+    var totalEarningsForInfo = data.players.reduce((acc, p) => acc + p.earnings, 0);
+    var infoBar = document.createElement('div'); infoBar.className = 'info-bar';
+    infoBar.innerHTML = `
+        <video class="panel-video" autoplay muted loop playsinline preload="auto" poster="../assets/trophy1.png">
+            <source src="../assets/vitality_rlcs2023.mp4" type="video/mp4">
+        </video>
+        <div class="info-item"><span class="pill">Updated</span><strong>RLCS Worlds</strong> season wrap-up</div>
+        <div class="info-item"><strong>${data.teams.length}</strong> teams tracked</div>
+        <div class="info-item"><strong>${data.players.length}</strong> players tracked</div>
+        <div class="info-item"><strong>${formatCurrency(totalEarningsForInfo)}</strong> total earnings</div>
+    `;
+    content.appendChild(infoBar);
 
     // Stats Dashboard
     var statsGrid = document.createElement('div'); statsGrid.className = 'stats-grid';
     
     // Tournaments Card
-    var tournamentsCard = document.createElement('div'); tournamentsCard.className = 'stat-card tournaments-card';
+    var tournamentsCard = document.createElement('div'); tournamentsCard.className = 'stat-card image-card tournaments-card';
     tournamentsCard.innerHTML = `
-        <div class="stat-icon">🏆</div>
+        <div class="card-media" style="background-image:url('../assets/trophy1.png')"></div>
         <div class="stat-content">
             <h3>Tournaments</h3>
             <div class="stat-value">${data.players.reduce((acc, p) => acc + p.tournaments.length, 0)}</div>
             <p class="stat-label">Total tournaments tracked</p>
         </div>
     `;
-    
+    tournamentsCard.onclick = showTournaments;    
     // Statistics Card
-    var statsCard = document.createElement('div'); statsCard.className = 'stat-card statistics-card';
+    var statsCard = document.createElement('div'); statsCard.className = 'stat-card image-card earnings-card';
     var totalEarnings = data.players.reduce((acc, p) => acc + p.earnings, 0);
     statsCard.innerHTML = `
-        <div class="stat-icon">📊</div>
+        <div class="card-media" style="background-image:url('../assets/rlcs.png')"></div>
         <div class="stat-content">
-            <h3>Statistics</h3>
+            <h3>Prize Pool</h3>
             <div class="stat-value">$${(totalEarnings / 1000).toFixed(0)}K</div>
             <p class="stat-label">Total earnings tracked</p>
         </div>
     `;
+    statsCard.onclick = showEarnings;
     
     // Players Card
-    var playersCard = document.createElement('div'); playersCard.className = 'stat-card players-card';
+    var playersCard = document.createElement('div'); playersCard.className = 'stat-card image-card players-card';
     playersCard.innerHTML = `
-        <div class="stat-icon">👤</div>
+        <div class="card-media" style="background-image:url('../assets/player.png')"></div>
         <div class="stat-content">
             <h3>Players</h3>
             <div class="stat-value">${data.players.length}</div>
             <p class="stat-label">Active players</p>
         </div>
     `;
-    playersCard.onclick = showPlayers;
-    
+    playersCard.onclick = showPlayers;    
     // Teams Card
-    var teamsCard = document.createElement('div'); teamsCard.className = 'stat-card teams-card';
+    var teamsCard = document.createElement('div'); teamsCard.className = 'stat-card image-card teams-card';
     teamsCard.innerHTML = `
-        <div class="stat-icon">👥</div>
+        <div class="card-media" style="background-image:url('../assets/teams.png')"></div>
         <div class="stat-content">
             <h3>Teams</h3>
             <div class="stat-value">${data.teams.length}</div>
             <p class="stat-label">Professional teams</p>
         </div>
     `;
-    teamsCard.onclick = showTeams;
-    
+    teamsCard.onclick = showTeams;    
     statsGrid.appendChild(tournamentsCard);
     statsGrid.appendChild(statsCard);
     statsGrid.appendChild(playersCard);
@@ -258,20 +368,28 @@ function showHome(skipPush) {
     quickActions.innerHTML = `
         <h2>Quick Actions</h2>
         <div class="action-buttons">
+            <button class="action-btn" onclick="showTournaments()">
+                <span>TOUR</span>
+                <span>Browse Tournaments</span>
+            </button>
+            <button class="action-btn" onclick="showEarnings()">
+                <span>EARN</span>
+                <span>Earnings Leaderboard</span>
+            </button>
             <button class="action-btn" onclick="showTeams()">
-                <span>👁️</span>
+                <span>TEAM</span>
                 <span>View All Teams</span>
             </button>
             <button class="action-btn" onclick="showPlayers()">
-                <span>👁️</span>
+                <span>PLAY</span>
                 <span>View All Players</span>
             </button>
             <button class="action-btn" onclick="addTeam()">
-                <span>➕</span>
+                <span>ADD</span>
                 <span>Add New Team</span>
             </button>
             <button class="action-btn" onclick="addPlayer()">
-                <span>➕</span>
+                <span>ADD</span>
                 <span>Add New Player</span>
             </button>
         </div>
@@ -293,20 +411,138 @@ function showHome(skipPush) {
                     <img src="${p.avatar || '../assets/player.svg'}" alt="${p.nickname}">
                     <div>
                         <strong>${p.nickname}</strong>
-                        <small>${p.country} • ${getTeamName(p.teamId)}</small>
+                        <small>${p.country} - ${getTeamName(p.teamId)}</small>
                     </div>
                 </div>
             `).join('')}
         </div>
     `;
     sidebar.appendChild(featuredPlayers);
-    
+
+    var topEarners = document.createElement('div'); topEarners.className = 'featured-card';
+    var earningsLeaders = data.players.slice().sort(function (a, b) { return b.earnings - a.earnings; }).slice(0, 3);
+    topEarners.innerHTML = `
+        <h3>Top Earners</h3>
+        <div id="topEarnersList">
+            ${earningsLeaders.map(p => `
+                <div class="featured-item" onclick="showPlayerDetails(${data.players.indexOf(p)})">
+                    <img src="${p.avatar || '../assets/player.svg'}" alt="${p.nickname}">
+                    <div>
+                        <strong>${p.nickname}</strong>
+                        <small>${formatCurrency(p.earnings)}</small>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    sidebar.appendChild(topEarners);
     // News Card
     var newsCard = document.createElement('div'); newsCard.className = 'news-card';
-    newsCard.innerHTML = '<h3>Latest News</h3><div id="newsList"><p class="muted">No news available.</p></div>';
+    newsCard.innerHTML = `
+        <h3>Latest News</h3>
+        <div id="newsList" class="news-list">
+            <div class="news-item-row">
+                <span class="news-pill">Breaking</span>
+                <strong>Team Vitality locks in roster for RLCS 2024</strong>
+                <small>2h ago</small>
+            </div>
+            <div class="news-item-row">
+                <span class="news-pill">Event</span>
+                <strong>Worlds venue announced for next season</strong>
+                <small>1d ago</small>
+            </div>
+            <div class="news-item-row">
+                <span class="news-pill">Patch</span>
+                <strong>Meta shifts after latest Rocket League update</strong>
+                <small>3d ago</small>
+            </div>
+        </div>
+    `;
     sidebar.appendChild(newsCard);
-    
+
+    var voteCard = document.createElement('div'); voteCard.className = 'featured-card';
+    var voteChoice = localStorage.getItem('playerVote');
+    var voteMessage = voteChoice ? 'Thanks for voting for ' + voteChoice + '.' : 'Vote once for your Player of the Year.';
+    voteCard.innerHTML = `
+        <h3>Player of the Year</h3>
+        <p class="muted">${voteMessage}</p>
+        <div class="vote-list">
+            ${data.players.slice(0, 5).map(p => `
+                <label class="vote-option">
+                    <input type="radio" name="playerVote" value="${p.nickname}" ${voteChoice ? 'disabled' : ''}>
+                    <span>${p.nickname}</span>
+                </label>
+            `).join('')}
+        </div>
+        <div class="vote-actions">
+            <button class="primary-btn vote-btn" ${voteChoice ? 'disabled' : ''}>Submit Vote</button>
+            <button class="ghost-btn vote-reset" ${voteChoice ? '' : 'disabled'}>Reset</button>
+        </div>
+    `;
+    sidebar.appendChild(voteCard);
+
+    var voteBtn = voteCard.querySelector('.vote-btn');
+    if (voteBtn) {
+        voteBtn.addEventListener('click', function () {
+            if (localStorage.getItem('playerVote')) return;
+            var selected = voteCard.querySelector('input[name=\"playerVote\"]:checked');
+            if (!selected) return;
+            localStorage.setItem('playerVote', selected.value);
+            showHome(true);
+        });
+    }
+
+    var resetBtn = voteCard.querySelector('.vote-reset');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            localStorage.removeItem('playerVote');
+            showHome(true);
+        });
+    }
+
+    var matchupsCard = document.createElement('div'); matchupsCard.className = 'featured-card matchups-card';
+    var matchups = [];
+    for (var i = 0; i < data.teams.length && matchups.length < 3; i += 2) {
+        if (data.teams[i + 1]) {
+            matchups.push({ left: data.teams[i], right: data.teams[i + 1] });
+        }
+    }
+    function teamScore(team) {
+        return data.players.filter(function (p) { return p.teamId === team.id; })
+            .reduce(function (acc, p) { return acc + (p.earnings || 0); }, 0);
+    }
+    matchupsCard.innerHTML = `
+        <h3>Featured Matchups</h3>
+        <div>
+            ${matchups.map(m => {
+                var leftScore = teamScore(m.left);
+                var rightScore = teamScore(m.right);
+                var favorite = leftScore === rightScore ? 'Even' : (leftScore > rightScore ? m.left.name : m.right.name);
+                return `
+                <div class="matchup-item">
+                    <div class="matchup-teams">
+                        <span class="matchup-team">
+                            <img src="${m.left.logo || '../assets/team.svg'}" alt="${m.left.name} logo">
+                            <span>${m.left.name}</span>
+                        </span>
+                        <span class="matchup-vs">VS</span>
+                        <span class="matchup-team">
+                            <img src="${m.right.logo || '../assets/team.svg'}" alt="${m.right.name} logo">
+                            <span>${m.right.name}</span>
+                        </span>
+                    </div>
+                    <div class="matchup-meta-wrap">
+                        <span class="matchup-pick">${favorite} favored</span>
+                        <span class="matchup-meta">Bo7</span>
+                    </div>
+                </div>
+            `;
+            }).join('')}
+        </div>
+    `;
+
     mainCol.appendChild(quickActions);
+    mainCol.appendChild(matchupsCard);
     mainGrid.appendChild(mainCol);
     mainGrid.appendChild(sidebar);
     content.appendChild(mainGrid);
@@ -317,6 +553,80 @@ function showHome(skipPush) {
 
     if (!skipPush && history && history.pushState) {
         try { history.pushState({view:'home'}, '', '#home'); } catch (e) { }
+    }
+}
+
+function showTournaments(skipPush) {
+    if (!requireAuth()) return;
+    content.innerHTML = "<h2>Tournaments</h2>";
+
+    var list = buildTournamentStats();
+    if (!list.length) {
+        content.innerHTML += '<p class="muted">No tournaments available.</p>';
+        return;
+    }
+
+    var table = document.createElement("table");
+    table.className = "table";
+    table.innerHTML = "<tr><th>Name</th><th>Players</th><th>Total Earnings</th><th>Avg Earnings</th></tr>";
+
+    list.forEach(function (t) {
+        var avg = t.players ? Math.round(t.earnings / t.players) : 0;
+        var row = document.createElement("tr");
+        row.innerHTML =
+            "<td>" + t.name + "</td>" +
+            "<td>" + t.players + "</td>" +
+            "<td>" + formatCurrency(t.earnings) + "</td>" +
+            "<td>" + formatCurrency(avg) + "</td>";
+        table.appendChild(row);
+    });
+
+    content.appendChild(table);
+    if (!skipPush && history && history.pushState) {
+        try { history.pushState({view:'tournaments'}, '', '#tournaments'); } catch (e) { }
+    }
+}
+
+function showEarnings(skipPush) {
+    if (!requireAuth()) return;
+    content.innerHTML = "<h2>Earnings</h2>";
+
+    var sorted = data.players.slice().sort(function (a, b) { return b.earnings - a.earnings; });
+    if (!sorted.length) {
+        content.innerHTML += '<p class="muted">No earnings available.</p>';
+        return;
+    }
+
+    var table = document.createElement("table");
+    table.className = "table";
+    table.innerHTML = "<tr><th>Rank</th><th>Player</th><th>Team</th><th>Earnings</th><th>Tournaments</th><th>Action</th></tr>";
+
+    sorted.forEach(function (p, i) {
+        var row = document.createElement("tr");
+        row.innerHTML =
+            "<td>" + (i + 1) + "</td>" +
+            "<td>" + p.nickname + "</td>" +
+            "<td>" + getTeamName(p.teamId) + "</td>" +
+            "<td>" + formatCurrency(p.earnings) + "</td>" +
+            "<td>" + ((p.tournaments || []).length) + "</td>";
+
+        var action = document.createElement("td");
+        var view = document.createElement("button");
+        view.textContent = "View";
+        view.onclick = (function (index) {
+            return function () {
+                showPlayerDetails(index);
+            };
+        })(data.players.indexOf(p));
+
+        action.appendChild(view);
+        row.appendChild(action);
+        table.appendChild(row);
+    });
+
+    content.appendChild(table);
+    if (!skipPush && history && history.pushState) {
+        try { history.pushState({view:'earnings'}, '', '#earnings'); } catch (e) { }
     }
 }
 
@@ -373,6 +683,7 @@ function fetchLiveData() {
 }
 
 window.addEventListener('popstate', function (ev) {
+    if (!isLoggedIn()) { showLogin(); return; }
     var s = ev.state;
     if (!s) {
         showHome(true);
@@ -382,6 +693,8 @@ window.addEventListener('popstate', function (ev) {
         case 'home': showHome(true); break;
         case 'teams': showTeams(true); break;
         case 'players': showPlayers(true); break;
+        case 'tournaments': showTournaments(true); break;
+        case 'earnings': showEarnings(true); break;
         case 'team': showTeamDetails(s.index, true); break;
         case 'player': showPlayerDetails(s.index, true); break;
         case 'game': showGameDetails(s.index, true); break;
@@ -390,6 +703,7 @@ window.addEventListener('popstate', function (ev) {
 });
 
 function showTeams(skipPush) {
+    if (!requireAuth()) return;
     content.innerHTML = "<h2>Teams</h2>";
 
     var table = document.createElement("table");
@@ -429,6 +743,7 @@ function showTeams(skipPush) {
 }
 
 function showTeamDetails(index, skipPush) {
+    if (!requireAuth()) return;
     var t = data.teams[index];
     var playersOfTeam = data.players.filter(function (p) { return p.teamId === t.id; });
     content.innerHTML = "<h2>" + t.name + "</h2>" +
@@ -439,7 +754,7 @@ function showTeamDetails(index, skipPush) {
     list.innerHTML = "<h3>Players:</h3>";
     playersOfTeam.forEach(function (p) {
         var item = document.createElement('div');
-        item.innerHTML = "<strong>" + p.nickname + "</strong> — " + p.country;
+        item.innerHTML = "<strong>" + p.nickname + "</strong> - " + p.country;
         list.appendChild(item);
     });
     content.appendChild(list);
@@ -452,6 +767,7 @@ function showTeamDetails(index, skipPush) {
 }
 
 function showGameDetails(index, skipPush) {
+    if (!requireAuth()) return;
     var g = data.games[index];
     var teamsOfGame = data.teams.filter(function (t) { return t.gameId === g.id; });
     content.innerHTML = "<h2>" + g.name + "</h2>";
@@ -471,6 +787,7 @@ function showGameDetails(index, skipPush) {
 }
 
 function addTeam() {
+    if (!requireAuth()) return;
     var name = prompt("Team name:");
     var gameId = prompt("Game ID (1 = Rocket League, 2 = LoL):");
 
@@ -487,6 +804,7 @@ function addTeam() {
 }
 
 function showPlayers(skipPush) {
+    if (!requireAuth()) return;
     content.innerHTML = "<h2>Players</h2>";
 
     var table = document.createElement("table");
@@ -538,6 +856,7 @@ function showPlayers(skipPush) {
 }
 
 function showPlayerDetails(index, skipPush) {
+    if (!requireAuth()) return;
     var p = data.players[index];
     var team = data.teams.find(function (t) { return t.id === p.teamId; });
 
@@ -587,6 +906,7 @@ function showPlayerDetails(index, skipPush) {
 }
 
 function addPlayer() {
+    if (!requireAuth()) return;
     var nickname = prompt("Nickname:");
     var country = prompt("Country:");
     var teamId = prompt("Team ID:");
@@ -728,21 +1048,34 @@ function attachAutocomplete(input) {
 }
 attachAutocomplete(document.getElementById('searchInput'));
 
+document.getElementById("btnTournaments").addEventListener("click", showTournaments);
+document.getElementById("btnEarnings").addEventListener("click", showEarnings);
 document.getElementById("btnTeams").addEventListener("click", showTeams);
 document.getElementById("btnPlayers").addEventListener("click", showPlayers);
 document.getElementById("btnAddTeam").addEventListener("click", addTeam);
 document.getElementById("btnAddPlayer").addEventListener("click", addPlayer);
 
 document.getElementById("btnLogout").addEventListener("click", function () {
-    localStorage.clear();
-    location.reload();
+    localStorage.setItem(AUTH_KEY, "false");
+    showLogin("Signed out.");
+    if (history && history.replaceState) {
+        try { history.replaceState({view:'login'}, '', '#login'); } catch (e) { }
+    }
 });
 
 
 document.getElementById("homeLink").addEventListener("click", showHome);
 
-showHome(true);
-if (history && history.replaceState) {
-    try { history.replaceState({view:'home'}, '', '#home'); } catch (e) { }
+if (isLoggedIn()) {
+    setNavEnabled(true);
+    showHome(true);
+    if (history && history.replaceState) {
+        try { history.replaceState({view:'home'}, '', '#home'); } catch (e) { }
+    }
+} else {
+    setNavEnabled(false);
+    showLogin();
+    if (history && history.replaceState) {
+        try { history.replaceState({view:'login'}, '', '#login'); } catch (e) { }
+    }
 }
-
