@@ -282,7 +282,6 @@ function showHome(skipPush) {
     if (!requireAuth()) return;
      content.innerHTML = "";
 
-    // Hero Section
     var hero = document.createElement('div'); hero.className = 'hero';
     hero.innerHTML = `
         <video class="panel-video" autoplay muted loop playsinline preload="auto" poster="../assets/trophy1.png">
@@ -308,10 +307,10 @@ function showHome(skipPush) {
     `;
     content.appendChild(infoBar);
 
-    // Stats Dashboard
+  
     var statsGrid = document.createElement('div'); statsGrid.className = 'stats-grid';
     
-    // Tournaments Card
+   
     var tournamentsCard = document.createElement('div'); tournamentsCard.className = 'stat-card image-card tournaments-card';
     tournamentsCard.innerHTML = `
         <div class="card-media" style="background-image:url('../assets/trophy1.png')"></div>
@@ -322,7 +321,7 @@ function showHome(skipPush) {
         </div>
     `;
     tournamentsCard.onclick = showTournaments;    
-    // Statistics Card
+  
     var statsCard = document.createElement('div'); statsCard.className = 'stat-card image-card earnings-card';
     var totalEarnings = data.players.reduce((acc, p) => acc + p.earnings, 0);
     statsCard.innerHTML = `
@@ -335,7 +334,7 @@ function showHome(skipPush) {
     `;
     statsCard.onclick = showEarnings;
     
-    // Players Card
+  
     var playersCard = document.createElement('div'); playersCard.className = 'stat-card image-card players-card';
     playersCard.innerHTML = `
         <div class="card-media" style="background-image:url('../assets/player.png')"></div>
@@ -346,7 +345,7 @@ function showHome(skipPush) {
         </div>
     `;
     playersCard.onclick = showPlayers;    
-    // Teams Card
+    
     var teamsCard = document.createElement('div'); teamsCard.className = 'stat-card image-card teams-card';
     teamsCard.innerHTML = `
         <div class="card-media" style="background-image:url('../assets/teams.png')"></div>
@@ -363,7 +362,7 @@ function showHome(skipPush) {
     statsGrid.appendChild(teamsCard);
     content.appendChild(statsGrid);
 
-    // Quick Actions Section
+   
     var quickActions = document.createElement('div'); quickActions.className = 'quick-actions';
     quickActions.innerHTML = `
         <h2>Quick Actions</h2>
@@ -396,12 +395,12 @@ function showHome(skipPush) {
     `;
     content.appendChild(quickActions);
 
-    // Sidebar with Featured Content
+   
     var mainGrid = document.createElement('div'); mainGrid.className = 'home-grid';
     var mainCol = document.createElement('div'); mainCol.className = 'main-col';
     var sidebar = document.createElement('aside'); sidebar.className = 'sidebar';
     
-    // Featured Players
+    
     var featuredPlayers = document.createElement('div'); featuredPlayers.className = 'featured-card';
     featuredPlayers.innerHTML = `
         <h3>Featured Players</h3>
@@ -436,7 +435,6 @@ function showHome(skipPush) {
         </div>
     `;
     sidebar.appendChild(topEarners);
-    // News Card
     var newsCard = document.createElement('div'); newsCard.className = 'news-card';
     newsCard.innerHTML = `
         <h3>Latest News</h3>

@@ -24,7 +24,7 @@ body{
 }
 
 
-/* ===== TOPBAR ===== */
+
 .topbar{
     position:sticky;
     top:0;
@@ -113,12 +113,12 @@ body{
 
 .is-disabled{opacity:0.6;pointer-events:none}
 
-/* ===== LAYOUT ===== */
+
 #content{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:2}
 main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:2}
 #content h2{margin-top:0;color:var(--accent-2)}
 
-/* ===== HOME GRID ===== */
+
 .home-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start}
 .sidebar{display:flex;flex-direction:column;gap:12px}
 .news-card{background:var(--surface);padding:16px;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow)}
@@ -135,7 +135,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     .home-grid{grid-template-columns:1fr;}
 }
 
-/* ===== HERO ===== */
+
 .hero{
     margin-top:18px;
     background:linear-gradient(120deg, rgba(244,197,66,0.2), rgba(255,255,255,0.72));
@@ -164,7 +164,6 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     .hero-search input{width:100%}
 }
 
-/* ===== INFO BAR ===== */
 .info-bar{
     margin:16px 0 6px;
     background:#fff;
@@ -219,7 +218,6 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     z-index:2;
 }
 
-/* ===== STATS DASHBOARD ===== */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -302,7 +300,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     color: var(--muted);
 }
 
-/* ===== QUICK ACTIONS ===== */
+
 .quick-actions { margin-top: 28px; }
 
 .quick-actions h2 {
@@ -352,7 +350,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     letter-spacing:0.6px;
 }
 
-/* ===== FEATURED CONTENT ===== */
+
 .featured-card {
     background: var(--surface);
     padding: 18px;
@@ -425,7 +423,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     margin-top: 2px;
 }
 
-/* ===== VOTE ===== */
+
 .vote-list{
     display:grid;
     gap:8px;
@@ -479,7 +477,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     cursor:not-allowed;
 }
 
-/* ===== MATCHUPS ===== */
+
 .matchups-card .matchup-item{
     display:flex;
     align-items:center;
@@ -547,7 +545,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     font-weight:600;
 }
 
-/* ===== TABLE ===== */
+
 .table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--border);backdrop-filter: blur(8px)}
 .table th,.table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
 .table th{background:rgba(255,255,255,0.8);font-weight:700;color:var(--accent-2);position: sticky;top: 0;z-index: 10}
@@ -557,7 +555,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
 .table button{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--accent-2)}
 .table button:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ===== TOURNAMENT STATUS ===== */
+
 .status-badge.completed {
     background: #16a34a !important;
     color: #fff;
@@ -584,7 +582,7 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     font-size:12px;
     font-weight:600;
 }
-/* ===== PLAYER TOURNAMENT GRID ===== */
+
 .player-tournament-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -605,14 +603,14 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     border-color: rgba(43,108,176,0.3);
 }
 
-/* ===== AUTCOMPLETE ===== */
+
 .suggestions{position:absolute;z-index:40;background:rgba(255,255,255,0.9);border:1px solid var(--border);box-shadow:0 8px 20px rgba(16,24,40,0.08);border-radius:8px;overflow:hidden;margin-top:6px;backdrop-filter: blur(6px)}
 .suggestion-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
 .suggestion-item:hover{background:#f3f6fb}
 .suggestion-item small{color:var(--muted)}
 .suggestion-category{padding:6px 10px;font-size:12px;color:var(--muted);background:#f7f9fd}
 
-/* ===== LOGIN ===== */
+
 .login-wrap{
     display:flex;
     align-items:center;
@@ -671,10 +669,10 @@ main{max-width:1100px;margin:24px auto;padding:0 18px;position:relative;z-index:
     color:var(--muted);
 }
 
-/* ===== MISC ===== */
+
 .muted{color:var(--muted)}
 
-/* ===== RESPONSIVE ===== */
+
 @media (max-width: 768px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
